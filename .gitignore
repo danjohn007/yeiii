@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Environment files
+.env
+.env.local
+
+# Cache
+cache/
+tmp/
+
+# Uploads (keep directory but ignore contents)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Database
+*.sql.backup
+*.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Build artifacts
+dist/
+build/
