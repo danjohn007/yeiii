@@ -11,7 +11,7 @@ ob_start();
                     Descubre Beneficios Exclusivos
                 </h1>
                 <p class="lead mb-4">
-                    Únete a YEIII Platform y accede a descuentos únicos en comercios locales. 
+                    Únete a UFF! Platform y accede a descuentos únicos en comercios locales. 
                     Registra tu tarjeta digital gratuita y comienza a ahorrar hoy mismo.
                 </p>
                 <div class="d-flex gap-3 flex-wrap">
@@ -44,7 +44,7 @@ ob_start();
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
-                <h2 class="fw-bold">¿Por qué elegir YEIII?</h2>
+                <h2 class="fw-bold">¿Por qué elegir UFF!?</h2>
                 <p class="text-muted">Beneficios únicos que hacen la diferencia</p>
             </div>
         </div>

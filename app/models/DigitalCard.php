@@ -8,7 +8,7 @@ class DigitalCard extends Model {
         $cardNumber = $this->generateCardNumber();
         
         // Generate QR code
-        $qrCode = 'QR-YEIII-' . $cardNumber . '-' . substr(md5($userId . time()), 0, 8);
+        $qrCode = 'QR-UFF-' . $cardNumber . '-' . substr(md5($userId . time()), 0, 8);
         
         $cardData = [
             'user_id' => $userId,
@@ -24,7 +24,7 @@ class DigitalCard extends Model {
     
     private function generateCardNumber() {
         do {
-            $cardNumber = 'YEIII-' . str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+            $cardNumber = 'UFF-' . str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
         } while ($this->exists(['card_number' => $cardNumber]));
         
         return $cardNumber;
