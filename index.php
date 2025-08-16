@@ -8,7 +8,11 @@ require_once 'config/config.php';
 // Get the request URI and clean it
 $request = $_SERVER['REQUEST_URI'];
 $path = parse_url($request, PHP_URL_PATH);
-$path = str_replace(BASE_URL, '', $path);
+
+// Remove base URL from path (only from beginning)
+if (BASE_URL !== '/' && strpos($path, BASE_URL) === 0) {
+    $path = substr($path, strlen(BASE_URL));
+}
 $path = trim($path, '/');
 
 // Default route
