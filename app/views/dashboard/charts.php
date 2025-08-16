@@ -65,21 +65,7 @@ ob_start();
                                 <h5 class="mb-0">Distribución de Usuarios por Rol</h5>
                             </div>
                             <div class="card-body">
-                                <div class="text-center py-4">
-                                    <div class="row">
-                                        <?php foreach ($userStats as $stat): ?>
-                                        <div class="col-6 mb-3">
-                                            <div class="p-3 border rounded">
-                                                <h4 class="text-primary"><?= $stat['count'] ?></h4>
-                                                <small class="text-muted"><?= ucfirst($stat['role']) ?></small>
-                                                <div class="progress mt-2" style="height: 6px;">
-                                                    <div class="progress-bar bg-primary" style="width: <?= ($stat['count'] / array_sum(array_column($userStats, 'count'))) * 100 ?>%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
+                                <canvas id="userRoleChart" width="400" height="200"></canvas>
                             </div>
                         </div>
                     </div>
@@ -90,11 +76,7 @@ ob_start();
                                 <h5 class="mb-0">Crecimiento de Usuarios</h5>
                             </div>
                             <div class="card-body">
-                                <div class="text-center py-5">
-                                    <i class="bi bi-graph-up text-muted" style="font-size: 4rem;"></i>
-                                    <p class="text-muted mt-3">Gráfica de tendencias</p>
-                                    <small class="text-muted">Funcionalidad disponible próximamente</small>
-                                </div>
+                                <canvas id="userGrowthChart" width="400" height="200"></canvas>
                             </div>
                         </div>
                     </div>
@@ -176,5 +158,88 @@ ob_start();
 
 <?php 
 $content = ob_get_clean();
+
+// Add page-specific scripts for charts
+$pageScripts = '
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // User Role Distribution Chart
+    const userRoleCtx = document.getElementById("userRoleChart").getContext("2d");
+    const userRoleData = ' . json_encode($userStats) . ';
+    
+    new Chart(userRoleCtx, {
+        type: "doughnut",
+        data: {
+            labels: userRoleData.map(stat => stat.role.charAt(0).toUpperCase() + stat.role.slice(1)),
+            datasets: [{
+                data: userRoleData.map(stat => stat.count),
+                backgroundColor: [
+                    "#FF6384",
+                    "#36A2EB", 
+                    "#FFCE56",
+                    "#4BC0C0",
+                    "#9966FF",
+                    "#FF9F40"
+                ],
+                borderWidth: 2,
+                borderColor: "#fff"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+    
+    // User Growth Chart (mock data)
+    const userGrowthCtx = document.getElementById("userGrowthChart").getContext("2d");
+    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"];
+    const userCounts = [5, 12, 8, 15, 22, 18]; // Mock data
+    
+    new Chart(userGrowthCtx, {
+        type: "line",
+        data: {
+            labels: months,
+            datasets: [{
+                label: "Usuarios Registrados",
+                data: userCounts,
+                borderColor: "#36A2EB",
+                backgroundColor: "rgba(54, 162, 235, 0.1)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: "rgba(0,0,0,0.1)"
+                    }
+                },
+                x: {
+                    grid: {
+                        color: "rgba(0,0,0,0.1)"
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>';
+
 include APP_PATH . 'views/layouts/main.php';
 ?>

@@ -1,5 +1,5 @@
 /**
- * YEIII Platform JavaScript
+ * UFF! Platform JavaScript
  */
 
 // Global variables

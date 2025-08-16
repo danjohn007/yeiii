@@ -88,6 +88,10 @@ class AuthController extends Controller {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $verificationToken = bin2hex(random_bytes(32));
         
+        // Auto-activate standard users, require manual activation for other roles
+        $initialStatus = ($userType === 'usuario') ? 'active' : 'pending';
+        $emailVerified = ($userType === 'usuario') ? 1 : 0;
+        
         $userData = [
             'email' => $email,
             'password' => $hashedPassword,
@@ -95,8 +99,9 @@ class AuthController extends Controller {
             'whatsapp' => $whatsapp,
             'birth_date' => $birthDate,
             'role' => $userType,
-            'status' => 'pending',
-            'email_verification_token' => $verificationToken
+            'status' => $initialStatus,
+            'email_verified' => $emailVerified,
+            'email_verification_token' => $emailVerified ? null : $verificationToken
         ];
         
         $userId = $userModel->create($userData);
@@ -108,10 +113,14 @@ class AuthController extends Controller {
                 $cardModel->createForUser($userId);
             }
             
-            // Send verification email (simulate for now)
-            $this->sendVerificationEmail($email, $verificationToken);
+            // Send verification email only for non-standard users
+            if ($userType !== 'usuario') {
+                $this->sendVerificationEmail($email, $verificationToken);
+                $_SESSION['flash_message'] = 'Registro exitoso. Tu cuenta será revisada por nuestro equipo.';
+            } else {
+                $_SESSION['flash_message'] = 'Registro exitoso. Tu cuenta ya está activa y puedes iniciar sesión.';
+            }
             
-            $_SESSION['flash_message'] = 'Registro exitoso. Revisa tu email para verificar tu cuenta.';
             $_SESSION['flash_type'] = 'success';
             $this->redirect('auth/login');
         } else {

@@ -45,10 +45,14 @@ class DashboardController extends Controller {
             'pendingBusinesses' => $businessModel->count(['status' => 'pending'])
         ];
         
+        // Get user statistics for chart
+        $userStats = $userModel->getStats();
+        
         $data = [
             'pageTitle' => 'Dashboard - Super Administrador',
             'user' => $this->getCurrentUser(),
-            'stats' => $stats
+            'stats' => $stats,
+            'userStats' => $userStats
         ];
         
         $this->view('dashboard/superadmin', $data);
@@ -252,7 +256,8 @@ class DashboardController extends Controller {
             'selectedRole' => $role,
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'totalUsers' => $totalUsers
+            'totalUsers' => $totalUsers,
+            'csrf_token' => $this->generateCSRFToken()
         ];
         
         $this->view('dashboard/user-management', $data);
@@ -361,6 +366,289 @@ class DashboardController extends Controller {
         ];
         
         $this->view('dashboard/charts', $data);
+    }
+    
+    // User management actions
+    public function user_details($userId) {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        if (!$userId) {
+            http_response_code(400);
+            echo '<div class="alert alert-danger">ID de usuario inválido</div>';
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        $targetUser = $userModel->getById($userId);
+        
+        if (!$targetUser) {
+            http_response_code(404);
+            echo '<div class="alert alert-danger">Usuario no encontrado</div>';
+            return;
+        }
+        
+        // Return user details HTML
+        echo $this->renderUserDetails($targetUser);
+    }
+    
+    private function renderUserDetails($user) {
+        ob_start();
+        ?>
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Información Personal</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Nombre:</strong></td><td><?= htmlspecialchars($user['full_name']) ?></td></tr>
+                    <tr><td><strong>Email:</strong></td><td><?= htmlspecialchars($user['email']) ?></td></tr>
+                    <tr><td><strong>WhatsApp:</strong></td><td><?= htmlspecialchars($user['whatsapp']) ?></td></tr>
+                    <tr><td><strong>Fecha de Nacimiento:</strong></td><td><?= date('d/m/Y', strtotime($user['birth_date'])) ?></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Información de Cuenta</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Rol:</strong></td><td><?= ucfirst($user['role']) ?></td></tr>
+                    <tr><td><strong>Estado:</strong></td><td>
+                        <span class="badge bg-<?= $user['status'] === 'active' ? 'success' : ($user['status'] === 'pending' ? 'warning' : 'danger') ?>">
+                            <?= ucfirst($user['status']) ?>
+                        </span>
+                    </td></tr>
+                    <tr><td><strong>Email Verificado:</strong></td><td>
+                        <?php if ($user['email_verified']): ?>
+                            <i class="bi bi-check-circle text-success"></i> Sí
+                        <?php else: ?>
+                            <i class="bi bi-x-circle text-warning"></i> No
+                        <?php endif; ?>
+                    </td></tr>
+                    <tr><td><strong>Registro:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td></tr>
+                    <?php if ($user['last_login']): ?>
+                    <tr><td><strong>Último Acceso:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['last_login'])) ?></td></tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+    
+    public function user_edit($userId) {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        if (!$userId) {
+            http_response_code(400);
+            echo '<div class="alert alert-danger">ID de usuario inválido</div>';
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        $targetUser = $userModel->getById($userId);
+        
+        if (!$targetUser) {
+            http_response_code(404);
+            echo '<div class="alert alert-danger">Usuario no encontrado</div>';
+            return;
+        }
+        
+        // Return user edit form HTML
+        echo $this->renderUserEditForm($targetUser);
+    }
+    
+    private function renderUserEditForm($user) {
+        ob_start();
+        ?>
+        <form id="userEditForm" data-user-id="<?= $user['id'] ?>">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="edit_full_name" class="form-label">Nombre Completo</label>
+                    <input type="text" class="form-control" id="edit_full_name" name="full_name" 
+                           value="<?= htmlspecialchars($user['full_name']) ?>" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="edit_email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="edit_email" 
+                           value="<?= htmlspecialchars($user['email']) ?>" disabled>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="edit_whatsapp" class="form-label">WhatsApp</label>
+                    <input type="text" class="form-control" id="edit_whatsapp" name="whatsapp" 
+                           value="<?= htmlspecialchars($user['whatsapp']) ?>" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="edit_role" class="form-label">Rol</label>
+                    <select class="form-control" id="edit_role" name="role" required>
+                        <option value="usuario" <?= $user['role'] === 'usuario' ? 'selected' : '' ?>>Usuario</option>
+                        <option value="comercio" <?= $user['role'] === 'comercio' ? 'selected' : '' ?>>Comercio</option>
+                        <option value="capturista" <?= $user['role'] === 'capturista' ? 'selected' : '' ?>>Capturista</option>
+                        <option value="gestor" <?= $user['role'] === 'gestor' ? 'selected' : '' ?>>Gestor</option>
+                        <option value="superadmin" <?= $user['role'] === 'superadmin' ? 'selected' : '' ?>>Super Admin</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="edit_status" class="form-label">Estado</label>
+                    <select class="form-control" id="edit_status" name="status" required>
+                        <option value="active" <?= $user['status'] === 'active' ? 'selected' : '' ?>>Activo</option>
+                        <option value="inactive" <?= $user['status'] === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
+                        <option value="pending" <?= $user['status'] === 'pending' ? 'selected' : '' ?>>Pendiente</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="edit_email_verified" class="form-label">Email Verificado</label>
+                    <select class="form-control" id="edit_email_verified" name="email_verified">
+                        <option value="1" <?= $user['email_verified'] ? 'selected' : '' ?>>Sí</option>
+                        <option value="0" <?= !$user['email_verified'] ? 'selected' : '' ?>>No</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+        
+        <script>
+        document.getElementById('userEditForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const userId = this.dataset.userId;
+            
+            fetch(`<?= SITE_URL ?>dashboard/user-update/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error al actualizar el usuario: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                alert('Error al actualizar el usuario');
+            });
+        });
+        </script>
+        <?php
+        return ob_get_clean();
+    }
+    
+    public function user_update($userId) {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'ID de usuario inválido']);
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        $targetUser = $userModel->getById($userId);
+        
+        if (!$targetUser) {
+            echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
+            return;
+        }
+        
+        $updateData = [
+            'full_name' => trim($this->getPost('full_name')),
+            'whatsapp' => trim($this->getPost('whatsapp')),
+            'role' => $this->getPost('role'),
+            'status' => $this->getPost('status'),
+            'email_verified' => (int)$this->getPost('email_verified')
+        ];
+        
+        // Validate data
+        if (empty($updateData['full_name']) || str_word_count($updateData['full_name']) < 2) {
+            echo json_encode(['success' => false, 'message' => 'El nombre completo debe contener al menos 2 palabras']);
+            return;
+        }
+        
+        if (!preg_match('/^\+52\d{10}$/', $updateData['whatsapp'])) {
+            echo json_encode(['success' => false, 'message' => 'WhatsApp debe tener formato internacional (+52XXXXXXXXXX)']);
+            return;
+        }
+        
+        if (!in_array($updateData['role'], ['usuario', 'comercio', 'capturista', 'gestor', 'superadmin'])) {
+            echo json_encode(['success' => false, 'message' => 'Rol inválido']);
+            return;
+        }
+        
+        if (!in_array($updateData['status'], ['active', 'inactive', 'pending'])) {
+            echo json_encode(['success' => false, 'message' => 'Estado inválido']);
+            return;
+        }
+        
+        if ($userModel->update($userId, $updateData)) {
+            echo json_encode(['success' => true, 'message' => 'Usuario actualizado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar el usuario']);
+        }
+    }
+    
+    public function user_status($userId) {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$userId || !isset($input['status'])) {
+            echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        $targetUser = $userModel->getById($userId);
+        
+        if (!$targetUser) {
+            echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
+            return;
+        }
+        
+        // Prevent self-modification of superadmin
+        $currentUser = $this->getCurrentUser();
+        if ($targetUser['id'] == $currentUser['id']) {
+            echo json_encode(['success' => false, 'message' => 'No puedes modificar tu propia cuenta']);
+            return;
+        }
+        
+        $newStatus = $input['status'];
+        if (!in_array($newStatus, ['active', 'inactive'])) {
+            echo json_encode(['success' => false, 'message' => 'Estado inválido']);
+            return;
+        }
+        
+        if ($userModel->update($userId, ['status' => $newStatus])) {
+            echo json_encode(['success' => true, 'message' => 'Estado del usuario actualizado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado del usuario']);
+        }
     }
 }
 ?>
