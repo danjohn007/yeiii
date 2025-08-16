@@ -267,13 +267,11 @@ class DashboardController extends Controller {
         // Get pending businesses
         $pendingBusinesses = $businessModel->getPendingApproval();
         
-        // Get recent approved/rejected businesses
-        $recentBusinesses = $businessModel->getWhere(
-            ['status' => ['approved', 'rejected']], 
-            'updated_at', 
-            'DESC', 
-            10
-        );
+        // Get recent approved/rejected businesses  
+        $sql = "SELECT * FROM businesses WHERE status IN ('approved', 'rejected') ORDER BY updated_at DESC LIMIT 10";
+        $stmt = $businessModel->db->prepare($sql);
+        $stmt->execute();
+        $recentBusinesses = $stmt->fetchAll();
         
         $data = [
             'pageTitle' => 'Autorización de Comercios',
