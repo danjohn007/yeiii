@@ -8,7 +8,11 @@ require_once 'config/config.php';
 // Get the request URI and clean it
 $request = $_SERVER['REQUEST_URI'];
 $path = parse_url($request, PHP_URL_PATH);
-$path = str_replace(BASE_URL, '', $path);
+
+// Remove base URL from path (only from beginning)
+if (BASE_URL !== '/' && strpos($path, BASE_URL) === 0) {
+    $path = substr($path, strlen(BASE_URL));
+}
 $path = trim($path, '/');
 
 // Default route
@@ -19,7 +23,7 @@ if (empty($path)) {
 // Parse the route
 $segments = explode('/', $path);
 $controller = ucfirst($segments[0] ?? 'Home') . 'Controller';
-$method = $segments[1] ?? 'index';
+$method = str_replace('-', '_', $segments[1] ?? 'index'); // Convert dashes to underscores
 $params = array_slice($segments, 2);
 
 try {

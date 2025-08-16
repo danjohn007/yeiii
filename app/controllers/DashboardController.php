@@ -220,5 +220,147 @@ class DashboardController extends Controller {
         
         $this->view('dashboard/favorites', $data);
     }
+    
+    // Admin functionality methods
+    public function user_management() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        $userModel = $this->model('User');
+        
+        // Get search parameters
+        $search = $this->getGet('search', '');
+        $role = $this->getGet('role', '');
+        $page = max(1, (int)$this->getGet('page', 1));
+        $perPage = 20;
+        $offset = ($page - 1) * $perPage;
+        
+        // Get users
+        $users = $userModel->searchUsers($search, $role, $perPage, $offset);
+        $totalUsers = $userModel->countSearch($search, $role);
+        $totalPages = ceil($totalUsers / $perPage);
+        
+        // Get user statistics by role
+        $userStats = $userModel->getStats();
+        
+        $data = [
+            'pageTitle' => 'Gestión de Usuarios',
+            'user' => $this->getCurrentUser(),
+            'users' => $users,
+            'userStats' => $userStats,
+            'search' => $search,
+            'selectedRole' => $role,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalUsers' => $totalUsers
+        ];
+        
+        $this->view('dashboard/user-management', $data);
+    }
+    
+    public function business_approval() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        $businessModel = $this->model('Business');
+        
+        // Get pending businesses
+        $pendingBusinesses = $businessModel->getPendingApproval();
+        
+        // Get recent approved/rejected businesses using a better approach
+        $businessModel = $this->model('Business'); 
+        $allBusinesses = $businessModel->getAll('updated_at', 'DESC');
+        $recentBusinesses = array_filter($allBusinesses, function($business) {
+            return in_array($business['status'], ['approved', 'rejected']);
+        });
+        $recentBusinesses = array_slice($recentBusinesses, 0, 10);
+        
+        $data = [
+            'pageTitle' => 'Autorización de Comercios',
+            'user' => $this->getCurrentUser(),
+            'pendingBusinesses' => $pendingBusinesses,
+            'recentBusinesses' => $recentBusinesses
+        ];
+        
+        $this->view('dashboard/business-approval', $data);
+    }
+    
+    public function metrics() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        $userModel = $this->model('User');
+        $businessModel = $this->model('Business');
+        $promotionModel = $this->model('Promotion');
+        $cardModel = $this->model('DigitalCard');
+        
+        // Get detailed statistics
+        $userStats = $userModel->getStats();
+        $businessStats = [
+            'total' => $businessModel->count(),
+            'approved' => $businessModel->count(['status' => 'approved']),
+            'pending' => $businessModel->count(['status' => 'pending']),
+            'rejected' => $businessModel->count(['status' => 'rejected'])
+        ];
+        
+        $promotionStats = [
+            'total' => $promotionModel->count(),
+            'active' => $promotionModel->count(['is_active' => 1]),
+            'featured' => $promotionModel->count(['is_featured' => 1])
+        ];
+        
+        $cardStats = [
+            'total' => $cardModel->count(),
+            'active' => $cardModel->count(['is_active' => 1]),
+            'free' => $cardModel->count(['membership_level' => 'free']),
+            'premium' => $cardModel->count(['membership_level' => 'premium']),
+            'vip' => $cardModel->count(['membership_level' => 'vip'])
+        ];
+        
+        $data = [
+            'pageTitle' => 'Métricas Detalladas',
+            'user' => $this->getCurrentUser(),
+            'userStats' => $userStats,
+            'businessStats' => $businessStats,
+            'promotionStats' => $promotionStats,
+            'cardStats' => $cardStats
+        ];
+        
+        $this->view('dashboard/metrics', $data);
+    }
+    
+    public function reports() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        $data = [
+            'pageTitle' => 'Informes y Reportes',
+            'user' => $this->getCurrentUser()
+        ];
+        
+        $this->view('dashboard/reports', $data);
+    }
+    
+    public function charts() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        $userModel = $this->model('User');
+        $businessModel = $this->model('Business');
+        $promotionModel = $this->model('Promotion');
+        
+        // Get data for charts
+        $userStats = $userModel->getStats();
+        $businessTypes = $businessModel->getCategories();
+        
+        $data = [
+            'pageTitle' => 'Gráficas y Visualizaciones',
+            'user' => $this->getCurrentUser(),
+            'userStats' => $userStats,
+            'businessTypes' => $businessTypes
+        ];
+        
+        $this->view('dashboard/charts', $data);
+    }
 }
 ?>

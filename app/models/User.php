@@ -67,7 +67,7 @@ class User extends Model {
         $stmt = $this->db->prepare($sql);
         
         foreach ($params as $key => $value) {
-            $stmt->bindParam(":{$key}", $params[$key]);
+            $stmt->bindValue(":{$key}", $value);
         }
         
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -94,7 +94,7 @@ class User extends Model {
         $stmt = $this->db->prepare($sql);
         
         foreach ($params as $key => $value) {
-            $stmt->bindParam(":{$key}", $params[$key]);
+            $stmt->bindValue(":{$key}", $value);
         }
         
         $stmt->execute();

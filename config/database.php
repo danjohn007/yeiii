@@ -6,9 +6,9 @@
 
 class Database {
     private $host = 'localhost';
-    private $db_name = 'yeiii_platform';
-    private $username = 'root';
-    private $password = '';
+    private $db_name = 'ejercito_yeiii';
+    private $username = 'ejercito_yeiii';
+    private $password = 'Danjohn007!';
     private $charset = 'utf8mb4';
     private $conn;
 
