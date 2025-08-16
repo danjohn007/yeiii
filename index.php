@@ -13,7 +13,7 @@ $path = trim($path, '/');
 
 // Default route
 if (empty($path)) {
-    $path = 'home/index';
+    $path = 'demo/index';
 }
 
 // Parse the route
