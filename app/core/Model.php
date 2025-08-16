@@ -55,7 +55,7 @@ class Model {
         $stmt = $this->db->prepare($sql);
         
         foreach ($conditions as $key => $value) {
-            $stmt->bindParam(":{$key}", $value);
+            $stmt->bindValue(":{$key}", $value);
         }
         
         $stmt->execute();
@@ -131,7 +131,7 @@ class Model {
         $stmt = $this->db->prepare($sql);
         
         foreach ($conditions as $key => $value) {
-            $stmt->bindParam(":{$key}", $value);
+            $stmt->bindValue(":{$key}", $value);
         }
         
         $stmt->execute();

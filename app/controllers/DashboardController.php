@@ -222,7 +222,7 @@ class DashboardController extends Controller {
     }
     
     // Admin functionality methods
-    public function userManagement() {
+    public function user_management() {
         $this->requireAuth();
         $this->requireRole('superadmin');
         
@@ -258,7 +258,7 @@ class DashboardController extends Controller {
         $this->view('dashboard/user-management', $data);
     }
     
-    public function businessApproval() {
+    public function business_approval() {
         $this->requireAuth();
         $this->requireRole('superadmin');
         
@@ -267,11 +267,13 @@ class DashboardController extends Controller {
         // Get pending businesses
         $pendingBusinesses = $businessModel->getPendingApproval();
         
-        // Get recent approved/rejected businesses  
-        $sql = "SELECT * FROM businesses WHERE status IN ('approved', 'rejected') ORDER BY updated_at DESC LIMIT 10";
-        $stmt = $businessModel->db->prepare($sql);
-        $stmt->execute();
-        $recentBusinesses = $stmt->fetchAll();
+        // Get recent approved/rejected businesses using a better approach
+        $businessModel = $this->model('Business'); 
+        $allBusinesses = $businessModel->getAll('updated_at', 'DESC');
+        $recentBusinesses = array_filter($allBusinesses, function($business) {
+            return in_array($business['status'], ['approved', 'rejected']);
+        });
+        $recentBusinesses = array_slice($recentBusinesses, 0, 10);
         
         $data = [
             'pageTitle' => 'Autorización de Comercios',

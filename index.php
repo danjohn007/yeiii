@@ -23,7 +23,7 @@ if (empty($path)) {
 // Parse the route
 $segments = explode('/', $path);
 $controller = ucfirst($segments[0] ?? 'Home') . 'Controller';
-$method = $segments[1] ?? 'index';
+$method = str_replace('-', '_', $segments[1] ?? 'index'); // Convert dashes to underscores
 $params = array_slice($segments, 2);
 
 try {
