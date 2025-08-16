@@ -5,7 +5,11 @@
  */
 
 class Database {
-    private $db_file = ROOT_PATH . 'yeiii_platform.db';
+    private $host = 'localhost';
+    private $db_name = 'ejercito_yeiii';
+    private $username = 'ejercito_yeiii';
+    private $password = 'Danjohn007!';
+    private $charset = 'utf8mb4';
     private $conn;
 
     /**
@@ -15,18 +19,14 @@ class Database {
         $this->conn = null;
         
         try {
-            $dsn = "sqlite:{$this->db_file}";
+            $dsn = "mysql:host={$this->host};dbname={$this->db_name};charset={$this->charset}";
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ];
             
-            $this->conn = new PDO($dsn, null, null, $options);
-            
-            // Enable foreign keys
-            $this->conn->exec('PRAGMA foreign_keys = ON;');
-            
+            $this->conn = new PDO($dsn, $this->username, $this->password, $options);
         } catch(PDOException $e) {
             echo 'Connection Error: ' . $e->getMessage();
         }
