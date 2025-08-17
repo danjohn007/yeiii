@@ -113,7 +113,7 @@ ob_start();
                 </div>
 
                 <!-- Business Information -->
-                <?php if (isset($business)): ?>
+                <?php if (isset($business) && $business): ?>
                 <div class="row mb-4">
                     <div class="col-lg-8">
                         <div class="card border-0 shadow">
@@ -161,6 +161,48 @@ ob_start();
                                 <a href="mailto:soporte@yeiii.com" class="btn btn-outline-secondary btn-sm w-100">
                                     <i class="bi bi-envelope me-1"></i>Contactar Soporte
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php else: ?>
+                <!-- Business Not Registered State -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card border-0 shadow">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-building text-warning mb-3" style="font-size: 4rem;"></i>
+                                <h4 class="text-warning">Negocio No Registrado</h4>
+                                <p class="text-muted mb-4">
+                                    Para acceder a todas las funciones del dashboard de comercio, 
+                                    necesitas registrar tu negocio en nuestra plataforma.
+                                </p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <a href="<?= SITE_URL ?>auth/register-business" class="btn btn-primary">
+                                        <i class="bi bi-plus me-1"></i>Registrar Mi Negocio
+                                    </a>
+                                    <a href="<?= SITE_URL ?>dashboard/profile" class="btn btn-outline-secondary">
+                                        <i class="bi bi-person me-1"></i>Completar Perfil
+                                    </a>
+                                </div>
+                                <hr class="my-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <i class="bi bi-check-circle text-success mb-2" style="font-size: 2rem;"></i>
+                                        <h6>Registro Gratuito</h6>
+                                        <small class="text-muted">Sin costos iniciales</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <i class="bi bi-lightning text-warning mb-2" style="font-size: 2rem;"></i>
+                                        <h6>Activación Rápida</h6>
+                                        <small class="text-muted">Proceso en 24-48 horas</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <i class="bi bi-graph-up text-info mb-2" style="font-size: 2rem;"></i>
+                                        <h6>Más Ventas</h6>
+                                        <small class="text-muted">Aumenta tu visibilidad</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -848,5 +848,172 @@ class DashboardController extends Controller {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado del usuario']);
         }
     }
+    
+    // Gestor functionality methods
+    public function city_businesses() {
+        $this->requireAuth();
+        $this->requireRole('gestor');
+        
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
+        if (!$city) {
+            $_SESSION['flash_message'] = 'No tienes una ciudad asignada. Contacta al administrador.';
+            $_SESSION['flash_type'] = 'warning';
+            $this->redirect('dashboard');
+        }
+        
+        $data = [
+            'pageTitle' => 'Comercios de mi Ciudad',
+            'user' => $user,
+            'city' => $city,
+            'businesses' => [] // Mock data - would be populated by BusinessModel
+        ];
+        
+        $this->view('dashboard/city-businesses', $data);
+    }
+    
+    public function city_users() {
+        $this->requireAuth();
+        $this->requireRole('gestor');
+        
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
+        if (!$city) {
+            $_SESSION['flash_message'] = 'No tienes una ciudad asignada. Contacta al administrador.';
+            $_SESSION['flash_type'] = 'warning';
+            $this->redirect('dashboard');
+        }
+        
+        $data = [
+            'pageTitle' => 'Usuarios de mi Ciudad',
+            'user' => $user,
+            'city' => $city,
+            'cityUsers' => [] // Mock data - would be populated by UserModel
+        ];
+        
+        $this->view('dashboard/city-users', $data);
+    }
+    
+    public function city_metrics() {
+        $this->requireAuth();
+        $this->requireRole('gestor');
+        
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
+        if (!$city) {
+            $_SESSION['flash_message'] = 'No tienes una ciudad asignada. Contacta al administrador.';
+            $_SESSION['flash_type'] = 'warning';
+            $this->redirect('dashboard');
+        }
+        
+        $cityStats = [
+            'totalBusinesses' => 0,
+            'approvedBusinesses' => 0,
+            'pendingBusinesses' => 0,
+            'rejectedBusinesses' => 0,
+            'totalUsers' => 0
+        ];
+        
+        $data = [
+            'pageTitle' => 'Métricas Regionales',
+            'user' => $user,
+            'city' => $city,
+            'cityStats' => $cityStats
+        ];
+        
+        $this->view('dashboard/city-metrics', $data);
+    }
+    
+    public function city_reports() {
+        $this->requireAuth();
+        $this->requireRole('gestor');
+        
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
+        if (!$city) {
+            $_SESSION['flash_message'] = 'No tienes una ciudad asignada. Contacta al administrador.';
+            $_SESSION['flash_type'] = 'warning';
+            $this->redirect('dashboard');
+        }
+        
+        $data = [
+            'pageTitle' => 'Reportes Regionales',
+            'user' => $user,
+            'city' => $city
+        ];
+        
+        $this->view('dashboard/city-reports', $data);
+    }
+    
+    // Capturista functionality methods
+    public function data_entry() {
+        $this->requireAuth();
+        $this->requireRole('capturista');
+        
+        $user = $this->getCurrentUser();
+        
+        $data = [
+            'pageTitle' => 'Captura de Datos',
+            'user' => $user
+        ];
+        
+        $this->view('dashboard/data-entry', $data);
+    }
+    
+    public function business_entry($action = null) {
+        $this->requireAuth();
+        $this->requireRole('capturista');
+        
+        $user = $this->getCurrentUser();
+        
+        if ($action === 'new') {
+            $data = [
+                'pageTitle' => 'Registrar Nuevo Comercio',
+                'user' => $user,
+                'action' => 'create'
+            ];
+            $this->view('dashboard/business-entry-form', $data);
+        } else {
+            $data = [
+                'pageTitle' => 'Registro de Comercios',
+                'user' => $user,
+                'businesses' => [] // Mock data - would be populated by BusinessModel
+            ];
+            
+            $this->view('dashboard/business-entry', $data);
+        }
+    }
+    
+    public function transaction_validation() {
+        $this->requireAuth();
+        $this->requireRole('capturista');
+        
+        $user = $this->getCurrentUser();
+        
+        $data = [
+            'pageTitle' => 'Validar Transacciones',
+            'user' => $user
+        ];
+        
+        $this->view('dashboard/transaction-validation', $data);
+    }
+    
+    public function my_work() {
+        $this->requireAuth();
+        $this->requireRole('capturista');
+        
+        $user = $this->getCurrentUser();
+        
+        $data = [
+            'pageTitle' => 'Mi Trabajo',
+            'user' => $user
+        ];
+        
+        $this->view('dashboard/my-work', $data);
+    }
 }
 ?>
