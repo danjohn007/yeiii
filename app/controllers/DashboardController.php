@@ -36,17 +36,32 @@ class DashboardController extends Controller {
         $promotionModel = $this->model('Promotion');
         $cardModel = $this->model('DigitalCard');
         
-        // Get statistics
-        $stats = [
-            'totalUsers' => $userModel->count(),
-            'totalBusinesses' => $businessModel->count(['status' => 'approved']),
-            'totalPromotions' => $promotionModel->count(['is_active' => 1]),
-            'totalCards' => $cardModel->count(['is_active' => 1]),
-            'pendingBusinesses' => $businessModel->count(['status' => 'pending'])
-        ];
+        // Get statistics with error handling
+        try {
+            $stats = [
+                'totalUsers' => $userModel->count(),
+                'totalBusinesses' => $businessModel->count(['status' => 'approved']),
+                'totalPromotions' => $promotionModel->count(['is_active' => 1]),
+                'totalCards' => $cardModel->count(['is_active' => 1]),
+                'pendingBusinesses' => $businessModel->count(['status' => 'pending'])
+            ];
+        } catch (Exception $e) {
+            // Fallback values to prevent chart errors
+            $stats = [
+                'totalUsers' => 0,
+                'totalBusinesses' => 0,
+                'totalPromotions' => 0,
+                'totalCards' => 0,
+                'pendingBusinesses' => 0
+            ];
+        }
         
-        // Get user statistics for chart
-        $userStats = $userModel->getStats();
+        // Get user statistics for chart with error handling
+        try {
+            $userStats = $userModel->getStats();
+        } catch (Exception $e) {
+            $userStats = [];
+        }
         
         $data = [
             'pageTitle' => 'Dashboard - Super Administrador',
@@ -59,19 +74,51 @@ class DashboardController extends Controller {
     }
     
     private function gestorDashboard() {
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
         $data = [
             'pageTitle' => 'Dashboard - Gestor',
-            'user' => $this->getCurrentUser()
+            'user' => $user
         ];
+        
+        // Add city-specific data if city is assigned
+        if ($city) {
+            $businessModel = $this->model('Business');
+            $userModel = $this->model('User');
+            
+            $data['cityStats'] = [
+                'totalBusinesses' => $businessModel->countByCity($city),
+                'approvedBusinesses' => $businessModel->countByCity($city, 'approved'),
+                'pendingBusinesses' => $businessModel->countByCity($city, 'pending'),
+                'cityUsers' => $userModel->count(['city' => $city])
+            ];
+            
+            $data['recentBusinesses'] = $businessModel->getByCity($city);
+        }
         
         $this->view('dashboard/gestor', $data);
     }
     
     private function capturistaDashboard() {
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
         $data = [
             'pageTitle' => 'Dashboard - Capturista',
-            'user' => $this->getCurrentUser()
+            'user' => $user
         ];
+        
+        // Add city-specific data if city is assigned
+        if ($city) {
+            $businessModel = $this->model('Business');
+            
+            $data['cityStats'] = [
+                'totalBusinesses' => $businessModel->countByCity($city),
+                'todayRegistered' => 0, // This would need transaction log to track
+                'pendingApproval' => $businessModel->countByCity($city, 'pending')
+            ];
+        }
         
         $this->view('dashboard/capturista', $data);
     }
@@ -409,6 +456,9 @@ class DashboardController extends Controller {
                 <h6>Información de Cuenta</h6>
                 <table class="table table-sm">
                     <tr><td><strong>Rol:</strong></td><td><?= ucfirst($user['role']) ?></td></tr>
+                    <?php if (in_array($user['role'], ['gestor', 'capturista'])): ?>
+                    <tr><td><strong>Ciudad Asignada:</strong></td><td><?= htmlspecialchars($user['city'] ?? 'Sin asignar') ?></td></tr>
+                    <?php endif; ?>
                     <tr><td><strong>Estado:</strong></td><td>
                         <span class="badge bg-<?= $user['status'] === 'active' ? 'success' : ($user['status'] === 'pending' ? 'warning' : 'danger') ?>">
                             <?= ucfirst($user['status']) ?>
@@ -422,7 +472,7 @@ class DashboardController extends Controller {
                         <?php endif; ?>
                     </td></tr>
                     <tr><td><strong>Registro:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td></tr>
-                    <?php if ($user['last_login']): ?>
+                    <?php if (isset($user['last_login']) && $user['last_login']): ?>
                     <tr><td><strong>Último Acceso:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['last_login'])) ?></td></tr>
                     <?php endif; ?>
                 </table>
@@ -508,6 +558,27 @@ class DashboardController extends Controller {
                 </div>
             </div>
             
+            <!-- City field for gestor and capturista roles -->
+            <div class="row" id="cityFieldRow" style="display: <?= in_array($user['role'], ['gestor', 'capturista']) ? 'block' : 'none' ?>;">
+                <div class="col-md-6 mb-3">
+                    <label for="edit_city" class="form-label">Ciudad Asignada</label>
+                    <select class="form-control" id="edit_city" name="city">
+                        <option value="">Seleccionar ciudad...</option>
+                        <option value="Ciudad de México" <?= ($user['city'] ?? '') === 'Ciudad de México' ? 'selected' : '' ?>>Ciudad de México</option>
+                        <option value="Guadalajara" <?= ($user['city'] ?? '') === 'Guadalajara' ? 'selected' : '' ?>>Guadalajara</option>
+                        <option value="Monterrey" <?= ($user['city'] ?? '') === 'Monterrey' ? 'selected' : '' ?>>Monterrey</option>
+                        <option value="Puebla" <?= ($user['city'] ?? '') === 'Puebla' ? 'selected' : '' ?>>Puebla</option>
+                        <option value="Tijuana" <?= ($user['city'] ?? '') === 'Tijuana' ? 'selected' : '' ?>>Tijuana</option>
+                        <option value="León" <?= ($user['city'] ?? '') === 'León' ? 'selected' : '' ?>>León</option>
+                        <option value="Juárez" <?= ($user['city'] ?? '') === 'Juárez' ? 'selected' : '' ?>>Juárez</option>
+                        <option value="Torreón" <?= ($user['city'] ?? '') === 'Torreón' ? 'selected' : '' ?>>Torreón</option>
+                        <option value="Querétaro" <?= ($user['city'] ?? '') === 'Querétaro' ? 'selected' : '' ?>>Querétaro</option>
+                        <option value="Mérida" <?= ($user['city'] ?? '') === 'Mérida' ? 'selected' : '' ?>>Mérida</option>
+                    </select>
+                    <div class="form-text">Solo aplica para gestores y capturistas</div>
+                </div>
+            </div>
+            
             <div class="d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -515,6 +586,24 @@ class DashboardController extends Controller {
         </form>
         
         <script>
+        // Show/hide city field based on role
+        function toggleCityField() {
+            const roleSelect = document.getElementById('edit_role');
+            const cityFieldRow = document.getElementById('cityFieldRow');
+            const citySelect = document.getElementById('edit_city');
+            
+            if (roleSelect.value === 'gestor' || roleSelect.value === 'capturista') {
+                cityFieldRow.style.display = 'block';
+                citySelect.required = true;
+            } else {
+                cityFieldRow.style.display = 'none';
+                citySelect.required = false;
+                citySelect.value = '';
+            }
+        }
+        
+        document.getElementById('edit_role').addEventListener('change', toggleCityField);
+        
         document.getElementById('userEditForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -577,6 +666,19 @@ class DashboardController extends Controller {
             'email_verified' => (int)$this->getPost('email_verified')
         ];
         
+        // Handle city field for gestor and capturista roles
+        $role = $this->getPost('role');
+        if (in_array($role, ['gestor', 'capturista'])) {
+            $city = trim($this->getPost('city'));
+            if (empty($city)) {
+                echo json_encode(['success' => false, 'message' => 'La ciudad es requerida para gestores y capturistas']);
+                return;
+            }
+            $updateData['city'] = $city;
+        } else {
+            $updateData['city'] = null; // Clear city for other roles
+        }
+        
         // Validate data
         if (empty($updateData['full_name']) || str_word_count($updateData['full_name']) < 2) {
             echo json_encode(['success' => false, 'message' => 'El nombre completo debe contener al menos 2 palabras']);
@@ -602,6 +704,102 @@ class DashboardController extends Controller {
             echo json_encode(['success' => true, 'message' => 'Usuario actualizado correctamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el usuario']);
+        }
+    }
+    
+    public function user_create() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        
+        // Get form data
+        $userData = [
+            'full_name' => trim($this->getPost('full_name')),
+            'email' => trim($this->getPost('email')),
+            'whatsapp' => trim($this->getPost('whatsapp')),
+            'birth_date' => $this->getPost('birth_date'),
+            'role' => $this->getPost('role'),
+            'status' => $this->getPost('status'),
+            'email_verified' => $this->getPost('email_verified') ? 1 : 0,
+            'password' => $this->getPost('password')
+        ];
+        
+        // Handle city field for gestor and capturista roles
+        if (in_array($userData['role'], ['gestor', 'capturista'])) {
+            $city = trim($this->getPost('city'));
+            if (empty($city)) {
+                echo json_encode(['success' => false, 'message' => 'La ciudad es requerida para gestores y capturistas']);
+                return;
+            }
+            $userData['city'] = $city;
+        }
+        
+        // Validation
+        $errors = [];
+        
+        if (empty($userData['full_name']) || str_word_count($userData['full_name']) < 2) {
+            $errors[] = 'El nombre completo debe contener al menos 2 palabras';
+        }
+        
+        if (empty($userData['email']) || !filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Email inválido';
+        }
+        
+        if (!preg_match('/^\+52\d{10}$/', $userData['whatsapp'])) {
+            $errors[] = 'WhatsApp debe tener formato internacional (+52XXXXXXXXXX)';
+        }
+        
+        if (empty($userData['birth_date'])) {
+            $errors[] = 'Fecha de nacimiento es requerida';
+        } else {
+            $birthDate = new DateTime($userData['birth_date']);
+            $now = new DateTime();
+            $age = $now->diff($birthDate)->y;
+            if ($age < 18) {
+                $errors[] = 'El usuario debe ser mayor de 18 años';
+            }
+        }
+        
+        if (empty($userData['password']) || strlen($userData['password']) < 8) {
+            $errors[] = 'La contraseña debe tener al menos 8 caracteres';
+        }
+        
+        if (!in_array($userData['role'], ['usuario', 'comercio', 'capturista', 'gestor', 'superadmin'])) {
+            $errors[] = 'Rol inválido';
+        }
+        
+        if (!in_array($userData['status'], ['active', 'inactive', 'pending'])) {
+            $errors[] = 'Estado inválido';
+        }
+        
+        // Check if email already exists
+        if ($userModel->emailExists($userData['email'])) {
+            $errors[] = 'Este email ya está registrado';
+        }
+        
+        if (!empty($errors)) {
+            echo json_encode(['success' => false, 'message' => implode('. ', $errors)]);
+            return;
+        }
+        
+        // Hash password
+        $userData['password'] = password_hash($userData['password'], PASSWORD_DEFAULT);
+        
+        // Create user
+        $userId = $userModel->create($userData);
+        
+        if ($userId) {
+            echo json_encode(['success' => true, 'message' => 'Usuario creado correctamente', 'user_id' => $userId]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al crear el usuario']);
         }
     }
     

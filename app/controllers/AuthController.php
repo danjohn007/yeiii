@@ -175,6 +175,9 @@ class AuthController extends Controller {
             return;
         }
         
+        // Update last login timestamp
+        $userModel->updateLastLogin($user['id']);
+        
         // Set session data
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_email'] = $user['email'];

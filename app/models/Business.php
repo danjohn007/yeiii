@@ -119,5 +119,41 @@ class Business extends Model {
     public function reject($businessId) {
         return $this->update($businessId, ['status' => 'rejected']);
     }
+    
+    public function getByCity($city) {
+        $sql = "SELECT b.*, u.full_name as owner_name, u.city as owner_city
+                FROM {$this->table} b 
+                JOIN users u ON b.user_id = u.id 
+                WHERE u.city = :city 
+                ORDER BY b.business_name ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':city', $city);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
+    public function countByCity($city, $status = null) {
+        $sql = "SELECT COUNT(*) as total 
+                FROM {$this->table} b 
+                JOIN users u ON b.user_id = u.id 
+                WHERE u.city = :city";
+        
+        $params = ['city' => $city];
+        
+        if ($status) {
+            $sql .= " AND b.status = :status";
+            $params['status'] = $status;
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(":{$key}", $value);
+        }
+        $stmt->execute();
+        
+        $result = $stmt->fetch();
+        return $result['total'];
+    }
 }
 ?>

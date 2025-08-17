@@ -1,15 +1,15 @@
 -- Sample data for YEIII Platform
 
 -- Insert sample users with different roles
-INSERT INTO `users` (`email`, `password`, `full_name`, `whatsapp`, `birth_date`, `role`, `status`, `email_verified`) VALUES
-('admin@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Super Administrador', '+52155123456789', '1985-06-15', 'superadmin', 'active', 1),
-('gestor@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Gestor Regional', '+52155987654321', '1988-03-22', 'gestor', 'active', 1),
-('capturista@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'María Capturista', '+52155456789123', '1992-08-10', 'capturista', 'active', 1),
-('restaurante@ejemplo.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Restaurante El Buen Sabor', '+52155234567890', '1980-12-05', 'comercio', 'active', 1),
-('farmacia@ejemplo.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Farmacia San Juan', '+52155345678901', '1975-04-18', 'comercio', 'active', 1),
-('juan.perez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Juan Pérez García', '+52155567890123', '1995-11-28', 'usuario', 'active', 1),
-('maria.gonzalez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'María González López', '+52155678901234', '1990-07-14', 'usuario', 'active', 1),
-('carlos.rodriguez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Carlos Rodríguez Martín', '+52155789012345', '1987-09-03', 'usuario', 'active', 1);
+INSERT INTO `users` (`email`, `password`, `full_name`, `whatsapp`, `birth_date`, `role`, `status`, `email_verified`, `city`, `last_login`) VALUES
+('admin@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Super Administrador', '+52155123456789', '1985-06-15', 'superadmin', 'active', 1, NULL, '2024-01-20 14:30:00'),
+('gestor@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Gestor Regional', '+52155987654321', '1988-03-22', 'gestor', 'active', 1, 'Ciudad de México', '2024-01-19 16:45:00'),
+('capturista@yeiii.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'María Capturista', '+52155456789123', '1992-08-10', 'capturista', 'active', 1, 'Guadalajara', '2024-01-18 10:20:00'),
+('restaurante@ejemplo.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Restaurante El Buen Sabor', '+52155234567890', '1980-12-05', 'comercio', 'active', 1, 'Ciudad de México', '2024-01-17 18:00:00'),
+('farmacia@ejemplo.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Farmacia San Juan', '+52155345678901', '1975-04-18', 'comercio', 'active', 1, 'Ciudad de México', '2024-01-16 09:30:00'),
+('juan.perez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Juan Pérez García', '+52155567890123', '1995-11-28', 'usuario', 'active', 1, NULL, '2024-01-15 20:10:00'),
+('maria.gonzalez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'María González López', '+52155678901234', '1990-07-14', 'usuario', 'active', 1, NULL, '2024-01-14 11:25:00'),
+('carlos.rodriguez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Carlos Rodríguez Martín', '+52155789012345', '1987-09-03', 'usuario', 'active', 1, NULL, '2024-01-13 15:40:00');
 
 -- Insert sample businesses
 INSERT INTO `businesses` (`user_id`, `business_name`, `business_type`, `address`, `phone`, `description`, `opening_hours`, `latitude`, `longitude`, `rfc`, `legal_representative`, `status`) VALUES
