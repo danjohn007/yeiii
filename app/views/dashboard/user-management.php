@@ -424,13 +424,42 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.user-edit-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const userId = this.dataset.userId;
+            const userEditContent = document.getElementById('userEditContent');
+            
+            // Show loading state
+            userEditContent.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario de edición...</p>
+                </div>
+            `;
+            
             fetch(`<?= SITE_URL ?>dashboard/user-edit/${userId}`)
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
                 .then(html => {
-                    document.getElementById('userEditContent').innerHTML = html;
+                    userEditContent.innerHTML = html;
                 })
                 .catch(error => {
-                    document.getElementById('userEditContent').innerHTML = '<div class="alert alert-danger">Error al cargar el formulario de edición</div>';
+                    console.error('Error loading user edit form:', error);
+                    userEditContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Error:</strong> No se pudo cargar el formulario de edición. 
+                            <br><small>Error técnico: ${error.message}</small>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 });
         });
     });

@@ -247,7 +247,12 @@ document.addEventListener("DOMContentLoaded", function() {
     // Dashboard Overview Chart
     const dashboardCtx = document.getElementById("dashboardChart").getContext("2d");
     
-    new Chart(dashboardCtx, {
+    // Destroy existing chart if it exists to prevent infinite loops
+    if (window.dashboardChart && typeof window.dashboardChart.destroy === 'function') {
+        window.dashboardChart.destroy();
+    }
+    
+    window.dashboardChart = new Chart(dashboardCtx, {
         type: "bar",
         data: {
             labels: ["Usuarios", "Comercios", "Promociones", "Tarjetas"],
@@ -277,6 +282,10 @@ document.addEventListener("DOMContentLoaded", function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            },
             plugins: {
                 legend: {
                     display: false
