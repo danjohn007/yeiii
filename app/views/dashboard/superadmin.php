@@ -245,58 +245,66 @@ ob_start();
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Dashboard Overview Chart
-    const dashboardCtx = document.getElementById("dashboardChart").getContext("2d");
+    const dashboardCtx = document.getElementById("dashboardChart");
     
-    new Chart(dashboardCtx, {
-        type: "bar",
-        data: {
-            labels: ["Usuarios", "Comercios", "Promociones", "Tarjetas"],
-            datasets: [{
-                label: "Cantidad",
-                data: [
-                    <?= $stats['totalUsers'] ?>, 
-                    <?= $stats['totalBusinesses'] ?>, 
-                    <?= $stats['totalPromotions'] ?>, 
-                    <?= $stats['totalCards'] ?>
-                ],
-                backgroundColor: [
-                    "rgba(54, 162, 235, 0.8)",
-                    "rgba(75, 192, 192, 0.8)", 
-                    "rgba(255, 206, 86, 0.8)",
-                    "rgba(255, 99, 132, 0.8)"
-                ],
-                borderColor: [
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(75, 192, 192, 1)",
-                    "rgba(255, 206, 86, 1)", 
-                    "rgba(255, 99, 132, 1)"
-                ],
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    // Ensure we only create one chart instance to prevent memory leaks
+    if (dashboardCtx && !dashboardCtx.chart) {
+        const ctx = dashboardCtx.getContext("2d");
+        
+        dashboardCtx.chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["Usuarios", "Comercios", "Promociones", "Tarjetas"],
+                datasets: [{
+                    label: "Cantidad",
+                    data: [
+                        <?= $stats['totalUsers'] ?>, 
+                        <?= $stats['totalBusinesses'] ?>, 
+                        <?= $stats['totalPromotions'] ?>, 
+                        <?= $stats['totalCards'] ?>
+                    ],
+                    backgroundColor: [
+                        "rgba(54, 162, 235, 0.8)",
+                        "rgba(75, 192, 192, 0.8)", 
+                        "rgba(255, 206, 86, 0.8)",
+                        "rgba(255, 99, 132, 0.8)"
+                    ],
+                    borderColor: [
+                        "rgba(54, 162, 235, 1)",
+                        "rgba(75, 192, 192, 1)",
+                        "rgba(255, 206, 86, 1)", 
+                        "rgba(255, 99, 132, 1)"
+                    ],
+                    borderWidth: 2
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: "rgba(0,0,0,0.1)"
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000 // Limit animation duration to prevent loops
+                },
+                plugins: {
+                    legend: {
+                        display: false
                     }
                 },
-                x: {
-                    grid: {
-                        color: "rgba(0,0,0,0.1)"
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: "rgba(0,0,0,0.1)"
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: "rgba(0,0,0,0.1)"
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 

@@ -422,7 +422,7 @@ class DashboardController extends Controller {
                         <?php endif; ?>
                     </td></tr>
                     <tr><td><strong>Registro:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td></tr>
-                    <?php if ($user['last_login']): ?>
+                    <?php if (isset($user['last_login']) && $user['last_login']): ?>
                     <tr><td><strong>Último Acceso:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['last_login'])) ?></td></tr>
                     <?php endif; ?>
                 </table>
