@@ -71,7 +71,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-building text-primary mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['todayRegistered'] : 0 ?></h5>
                                 <p class="card-text text-muted">Comercios Registrados Hoy</p>
                             </div>
                         </div>
@@ -89,7 +89,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-clock text-warning mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['pendingApproval'] : 0 ?></h5>
                                 <p class="card-text text-muted">Tareas Pendientes</p>
                             </div>
                         </div>
@@ -98,7 +98,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-trophy text-info mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['totalBusinesses'] : 0 ?></h5>
                                 <p class="card-text text-muted">Total del Mes</p>
                             </div>
                         </div>

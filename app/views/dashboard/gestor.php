@@ -71,7 +71,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-building text-primary mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['totalBusinesses'] : 0 ?></h5>
                                 <p class="card-text text-muted">Comercios en mi Ciudad</p>
                             </div>
                         </div>
@@ -80,7 +80,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-clock text-warning mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['pendingBusinesses'] : 0 ?></h5>
                                 <p class="card-text text-muted">Comercios Pendientes</p>
                             </div>
                         </div>
@@ -89,7 +89,7 @@ ob_start();
                         <div class="card border-0 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-people text-success mb-2" style="font-size: 2rem;"></i>
-                                <h5 class="card-title">0</h5>
+                                <h5 class="card-title"><?= isset($cityStats) ? $cityStats['cityUsers'] : 0 ?></h5>
                                 <p class="card-text text-muted">Usuarios Activos</p>
                             </div>
                         </div>
@@ -166,11 +166,40 @@ ob_start();
                                 <a href="<?= SITE_URL ?>dashboard/city-reports" class="btn btn-sm btn-outline-primary">Ver Todo</a>
                             </div>
                             <div class="card-body">
+                                <?php if (isset($recentBusinesses) && !empty($recentBusinesses)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Negocio</th>
+                                                <th>Propietario</th>
+                                                <th>Estado</th>
+                                                <th>Tipo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach (array_slice($recentBusinesses, 0, 5) as $business): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($business['business_name']) ?></td>
+                                                <td><?= htmlspecialchars($business['owner_name']) ?></td>
+                                                <td>
+                                                    <span class="badge bg-<?= $business['status'] === 'approved' ? 'success' : ($business['status'] === 'pending' ? 'warning' : 'danger') ?>">
+                                                        <?= ucfirst($business['status']) ?>
+                                                    </span>
+                                                </td>
+                                                <td><?= htmlspecialchars($business['business_type']) ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php else: ?>
                                 <div class="text-center py-4">
                                     <i class="bi bi-clock-history text-muted mb-3" style="font-size: 3rem;"></i>
-                                    <h6>Sin actividad reciente</h6>
-                                    <p class="text-muted">La actividad reciente de tu ciudad aparecerá aquí</p>
+                                    <h6>Sin comercios registrados</h6>
+                                    <p class="text-muted">Los comercios de tu ciudad aparecerán aquí</p>
                                 </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

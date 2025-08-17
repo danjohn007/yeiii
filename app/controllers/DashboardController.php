@@ -74,19 +74,51 @@ class DashboardController extends Controller {
     }
     
     private function gestorDashboard() {
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
         $data = [
             'pageTitle' => 'Dashboard - Gestor',
-            'user' => $this->getCurrentUser()
+            'user' => $user
         ];
+        
+        // Add city-specific data if city is assigned
+        if ($city) {
+            $businessModel = $this->model('Business');
+            $userModel = $this->model('User');
+            
+            $data['cityStats'] = [
+                'totalBusinesses' => $businessModel->countByCity($city),
+                'approvedBusinesses' => $businessModel->countByCity($city, 'approved'),
+                'pendingBusinesses' => $businessModel->countByCity($city, 'pending'),
+                'cityUsers' => $userModel->count(['city' => $city])
+            ];
+            
+            $data['recentBusinesses'] = $businessModel->getByCity($city);
+        }
         
         $this->view('dashboard/gestor', $data);
     }
     
     private function capturistaDashboard() {
+        $user = $this->getCurrentUser();
+        $city = $user['city'] ?? null;
+        
         $data = [
             'pageTitle' => 'Dashboard - Capturista',
-            'user' => $this->getCurrentUser()
+            'user' => $user
         ];
+        
+        // Add city-specific data if city is assigned
+        if ($city) {
+            $businessModel = $this->model('Business');
+            
+            $data['cityStats'] = [
+                'totalBusinesses' => $businessModel->countByCity($city),
+                'todayRegistered' => 0, // This would need transaction log to track
+                'pendingApproval' => $businessModel->countByCity($city, 'pending')
+            ];
+        }
         
         $this->view('dashboard/capturista', $data);
     }
