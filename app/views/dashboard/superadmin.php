@@ -187,7 +187,33 @@ ob_start();
                                 <a href="<?= SITE_URL ?>dashboard/reports" class="btn btn-sm btn-outline-primary">Ver Todo</a>
                             </div>
                             <div class="card-body">
-                                <canvas id="dashboardChart" width="400" height="150"></canvas>
+                                <!-- Simple statistics table instead of chart -->
+                                <div class="row text-center">
+                                    <div class="col-3">
+                                        <div class="p-3">
+                                            <div class="h4 text-primary"><?= number_format($stats['totalUsers']) ?></div>
+                                            <small class="text-muted">Usuarios</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3">
+                                            <div class="h4 text-success"><?= number_format($stats['totalBusinesses']) ?></div>
+                                            <small class="text-muted">Comercios</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3">
+                                            <div class="h4 text-info"><?= number_format($stats['totalPromotions']) ?></div>
+                                            <small class="text-muted">Promociones</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3">
+                                            <div class="h4 text-warning"><?= number_format($stats['totalCards']) ?></div>
+                                            <small class="text-muted">Tarjetas</small>
+                                        </div>
+                                    </div>
+                                </div>
                                 <hr>
                                 <div class="text-center">
                                     <p class="text-muted mb-0">Sistema funcionando correctamente</p>
@@ -242,63 +268,7 @@ ob_start();
 }
 </style>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Dashboard Overview Chart
-    const dashboardCtx = document.getElementById("dashboardChart").getContext("2d");
-    
-    new Chart(dashboardCtx, {
-        type: "bar",
-        data: {
-            labels: ["Usuarios", "Comercios", "Promociones", "Tarjetas"],
-            datasets: [{
-                label: "Cantidad",
-                data: [
-                    <?= $stats['totalUsers'] ?>, 
-                    <?= $stats['totalBusinesses'] ?>, 
-                    <?= $stats['totalPromotions'] ?>, 
-                    <?= $stats['totalCards'] ?>
-                ],
-                backgroundColor: [
-                    "rgba(54, 162, 235, 0.8)",
-                    "rgba(75, 192, 192, 0.8)", 
-                    "rgba(255, 206, 86, 0.8)",
-                    "rgba(255, 99, 132, 0.8)"
-                ],
-                borderColor: [
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(75, 192, 192, 1)",
-                    "rgba(255, 206, 86, 1)", 
-                    "rgba(255, 99, 132, 1)"
-                ],
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: "rgba(0,0,0,0.1)"
-                    }
-                },
-                x: {
-                    grid: {
-                        color: "rgba(0,0,0,0.1)"
-                    }
-                }
-            }
-        }
-    });
-});
-</script>
+
 
 <?php 
 $content = ob_get_clean();
