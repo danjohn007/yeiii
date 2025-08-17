@@ -23,7 +23,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?= SITE_URL ?>">
-                <i class="bi bi-credit-card-2-front me-2"></i>YEIII
+                <i class="bi bi-credit-card-2-front me-2"></i>UFF!
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -119,7 +119,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4">
-                    <h5 class="fw-bold">YEIII Platform</h5>
+                    <h5 class="fw-bold">UFF! Platform</h5>
                     <p class="text-muted">Conectando usuarios con comercios locales a través de promociones exclusivas y beneficios únicos.</p>
                     <div class="d-flex gap-3">
                         <a href="#" class="text-light"><i class="bi bi-facebook"></i></a>
@@ -158,7 +158,7 @@
             <hr class="my-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="text-muted mb-0">&copy; <?= date('Y') ?> YEIII Platform. Todos los derechos reservados.</p>
+                    <p class="text-muted mb-0">&copy; <?= date('Y') ?> UFF! Platform. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted mb-0">Desarrollado con ❤️ en México</p>

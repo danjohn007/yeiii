@@ -9,7 +9,7 @@ ob_start();
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
                         <h2 class="fw-bold">Iniciar Sesión</h2>
-                        <p class="text-muted">Accede a tu cuenta YEIII</p>
+                        <p class="text-muted">Accede a tu cuenta UFF!</p>
                     </div>
                     
                     <form method="POST" action="<?= SITE_URL ?>auth/login">

@@ -187,15 +187,26 @@ ob_start();
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" disabled title="Ver detalles">
+                                                <button class="btn btn-outline-primary user-view-btn" 
+                                                        data-user-id="<?= $userItem['id'] ?>" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#userViewModal" 
+                                                        title="Ver detalles">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-warning" disabled title="Editar">
+                                                <button class="btn btn-outline-warning user-edit-btn" 
+                                                        data-user-id="<?= $userItem['id'] ?>" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#userEditModal" 
+                                                        title="Editar">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <?php if ($userItem['id'] !== $user['id']): ?>
-                                                <button class="btn btn-outline-danger" disabled title="Suspender">
-                                                    <i class="bi bi-ban"></i>
+                                                <button class="btn btn-outline-<?= $userItem['status'] === 'active' ? 'danger' : 'success' ?> user-status-btn" 
+                                                        data-user-id="<?= $userItem['id'] ?>" 
+                                                        data-current-status="<?= $userItem['status'] ?>"
+                                                        title="<?= $userItem['status'] === 'active' ? 'Suspender' : 'Activar' ?>">
+                                                    <i class="bi bi-<?= $userItem['status'] === 'active' ? 'ban' : 'check-circle' ?>"></i>
                                                 </button>
                                                 <?php endif; ?>
                                             </div>
@@ -245,6 +256,113 @@ ob_start();
         </div>
     </div>
 </div>
+
+<!-- User View Modal -->
+<div class="modal fade" id="userViewModal" tabindex="-1" aria-labelledby="userViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userViewModalLabel">Detalles de Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="userViewContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Edit Modal -->
+<div class="modal fade" id="userEditModal" tabindex="-1" aria-labelledby="userEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userEditModalLabel">Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="userEditContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // User View Modal
+    document.querySelectorAll('.user-view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`<?= SITE_URL ?>dashboard/user-details/${userId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('userViewContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('userViewContent').innerHTML = '<div class="alert alert-danger">Error al cargar los detalles del usuario</div>';
+                });
+        });
+    });
+
+    // User Edit Modal
+    document.querySelectorAll('.user-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`<?= SITE_URL ?>dashboard/user-edit/${userId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('userEditContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('userEditContent').innerHTML = '<div class="alert alert-danger">Error al cargar el formulario de edición</div>';
+                });
+        });
+    });
+
+    // User Status Toggle
+    document.querySelectorAll('.user-status-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const currentStatus = this.dataset.currentStatus;
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const action = newStatus === 'active' ? 'activar' : 'suspender';
+            
+            if (confirm(`¿Estás seguro de que deseas ${action} este usuario?`)) {
+                fetch(`<?= SITE_URL ?>dashboard/user-status/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        csrf_token: '<?= $csrf_token ?? '' ?>'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar el estado del usuario');
+                    }
+                })
+                .catch(error => {
+                    alert('Error al cambiar el estado del usuario');
+                });
+            }
+        });
+    });
+});
+</script>
 
 <?php 
 $content = ob_get_clean();
