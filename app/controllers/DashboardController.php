@@ -409,6 +409,9 @@ class DashboardController extends Controller {
                 <h6>Información de Cuenta</h6>
                 <table class="table table-sm">
                     <tr><td><strong>Rol:</strong></td><td><?= ucfirst($user['role']) ?></td></tr>
+                    <?php if (in_array($user['role'], ['gestor', 'capturista'])): ?>
+                    <tr><td><strong>Ciudad Asignada:</strong></td><td><?= htmlspecialchars($user['city'] ?? 'Sin asignar') ?></td></tr>
+                    <?php endif; ?>
                     <tr><td><strong>Estado:</strong></td><td>
                         <span class="badge bg-<?= $user['status'] === 'active' ? 'success' : ($user['status'] === 'pending' ? 'warning' : 'danger') ?>">
                             <?= ucfirst($user['status']) ?>
@@ -422,7 +425,7 @@ class DashboardController extends Controller {
                         <?php endif; ?>
                     </td></tr>
                     <tr><td><strong>Registro:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td></tr>
-                    <?php if ($user['last_login']): ?>
+                    <?php if (isset($user['last_login']) && $user['last_login']): ?>
                     <tr><td><strong>Último Acceso:</strong></td><td><?= date('d/m/Y H:i', strtotime($user['last_login'])) ?></td></tr>
                     <?php endif; ?>
                 </table>
@@ -508,6 +511,27 @@ class DashboardController extends Controller {
                 </div>
             </div>
             
+            <!-- City field for gestor and capturista roles -->
+            <div class="row" id="cityFieldRow" style="display: <?= in_array($user['role'], ['gestor', 'capturista']) ? 'block' : 'none' ?>;">
+                <div class="col-md-6 mb-3">
+                    <label for="edit_city" class="form-label">Ciudad Asignada</label>
+                    <select class="form-control" id="edit_city" name="city">
+                        <option value="">Seleccionar ciudad...</option>
+                        <option value="Ciudad de México" <?= ($user['city'] ?? '') === 'Ciudad de México' ? 'selected' : '' ?>>Ciudad de México</option>
+                        <option value="Guadalajara" <?= ($user['city'] ?? '') === 'Guadalajara' ? 'selected' : '' ?>>Guadalajara</option>
+                        <option value="Monterrey" <?= ($user['city'] ?? '') === 'Monterrey' ? 'selected' : '' ?>>Monterrey</option>
+                        <option value="Puebla" <?= ($user['city'] ?? '') === 'Puebla' ? 'selected' : '' ?>>Puebla</option>
+                        <option value="Tijuana" <?= ($user['city'] ?? '') === 'Tijuana' ? 'selected' : '' ?>>Tijuana</option>
+                        <option value="León" <?= ($user['city'] ?? '') === 'León' ? 'selected' : '' ?>>León</option>
+                        <option value="Juárez" <?= ($user['city'] ?? '') === 'Juárez' ? 'selected' : '' ?>>Juárez</option>
+                        <option value="Torreón" <?= ($user['city'] ?? '') === 'Torreón' ? 'selected' : '' ?>>Torreón</option>
+                        <option value="Querétaro" <?= ($user['city'] ?? '') === 'Querétaro' ? 'selected' : '' ?>>Querétaro</option>
+                        <option value="Mérida" <?= ($user['city'] ?? '') === 'Mérida' ? 'selected' : '' ?>>Mérida</option>
+                    </select>
+                    <div class="form-text">Solo aplica para gestores y capturistas</div>
+                </div>
+            </div>
+            
             <div class="d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -515,6 +539,24 @@ class DashboardController extends Controller {
         </form>
         
         <script>
+        // Show/hide city field based on role
+        function toggleCityField() {
+            const roleSelect = document.getElementById('edit_role');
+            const cityFieldRow = document.getElementById('cityFieldRow');
+            const citySelect = document.getElementById('edit_city');
+            
+            if (roleSelect.value === 'gestor' || roleSelect.value === 'capturista') {
+                cityFieldRow.style.display = 'block';
+                citySelect.required = true;
+            } else {
+                cityFieldRow.style.display = 'none';
+                citySelect.required = false;
+                citySelect.value = '';
+            }
+        }
+        
+        document.getElementById('edit_role').addEventListener('change', toggleCityField);
+        
         document.getElementById('userEditForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -576,6 +618,19 @@ class DashboardController extends Controller {
             'status' => $this->getPost('status'),
             'email_verified' => (int)$this->getPost('email_verified')
         ];
+        
+        // Handle city field for gestor and capturista roles
+        $role = $this->getPost('role');
+        if (in_array($role, ['gestor', 'capturista'])) {
+            $city = trim($this->getPost('city'));
+            if (empty($city)) {
+                echo json_encode(['success' => false, 'message' => 'La ciudad es requerida para gestores y capturistas']);
+                return;
+            }
+            $updateData['city'] = $city;
+        } else {
+            $updateData['city'] = null; // Clear city for other roles
+        }
         
         // Validate data
         if (empty($updateData['full_name']) || str_word_count($updateData['full_name']) < 2) {
