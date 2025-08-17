@@ -181,6 +181,9 @@ class AuthController extends Controller {
         $_SESSION['user_name'] = $user['full_name'];
         $_SESSION['user_role'] = $user['role'];
         
+        // Update last login time
+        $userModel->updateLastLogin($user['id']);
+        
         $_SESSION['flash_message'] = 'Bienvenido, ' . $user['full_name'];
         $_SESSION['flash_type'] = 'success';
         
