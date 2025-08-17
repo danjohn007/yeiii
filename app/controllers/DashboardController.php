@@ -36,17 +36,32 @@ class DashboardController extends Controller {
         $promotionModel = $this->model('Promotion');
         $cardModel = $this->model('DigitalCard');
         
-        // Get statistics
-        $stats = [
-            'totalUsers' => $userModel->count(),
-            'totalBusinesses' => $businessModel->count(['status' => 'approved']),
-            'totalPromotions' => $promotionModel->count(['is_active' => 1]),
-            'totalCards' => $cardModel->count(['is_active' => 1]),
-            'pendingBusinesses' => $businessModel->count(['status' => 'pending'])
-        ];
+        // Get statistics with error handling
+        try {
+            $stats = [
+                'totalUsers' => $userModel->count(),
+                'totalBusinesses' => $businessModel->count(['status' => 'approved']),
+                'totalPromotions' => $promotionModel->count(['is_active' => 1]),
+                'totalCards' => $cardModel->count(['is_active' => 1]),
+                'pendingBusinesses' => $businessModel->count(['status' => 'pending'])
+            ];
+        } catch (Exception $e) {
+            // Fallback values to prevent chart errors
+            $stats = [
+                'totalUsers' => 0,
+                'totalBusinesses' => 0,
+                'totalPromotions' => 0,
+                'totalCards' => 0,
+                'pendingBusinesses' => 0
+            ];
+        }
         
-        // Get user statistics for chart
-        $userStats = $userModel->getStats();
+        // Get user statistics for chart with error handling
+        try {
+            $userStats = $userModel->getStats();
+        } catch (Exception $e) {
+            $userStats = [];
+        }
         
         $data = [
             'pageTitle' => 'Dashboard - Super Administrador',
@@ -657,6 +672,102 @@ class DashboardController extends Controller {
             echo json_encode(['success' => true, 'message' => 'Usuario actualizado correctamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el usuario']);
+        }
+    }
+    
+    public function user_create() {
+        $this->requireAuth();
+        $this->requireRole('superadmin');
+        
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        $userModel = $this->model('User');
+        
+        // Get form data
+        $userData = [
+            'full_name' => trim($this->getPost('full_name')),
+            'email' => trim($this->getPost('email')),
+            'whatsapp' => trim($this->getPost('whatsapp')),
+            'birth_date' => $this->getPost('birth_date'),
+            'role' => $this->getPost('role'),
+            'status' => $this->getPost('status'),
+            'email_verified' => $this->getPost('email_verified') ? 1 : 0,
+            'password' => $this->getPost('password')
+        ];
+        
+        // Handle city field for gestor and capturista roles
+        if (in_array($userData['role'], ['gestor', 'capturista'])) {
+            $city = trim($this->getPost('city'));
+            if (empty($city)) {
+                echo json_encode(['success' => false, 'message' => 'La ciudad es requerida para gestores y capturistas']);
+                return;
+            }
+            $userData['city'] = $city;
+        }
+        
+        // Validation
+        $errors = [];
+        
+        if (empty($userData['full_name']) || str_word_count($userData['full_name']) < 2) {
+            $errors[] = 'El nombre completo debe contener al menos 2 palabras';
+        }
+        
+        if (empty($userData['email']) || !filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Email inválido';
+        }
+        
+        if (!preg_match('/^\+52\d{10}$/', $userData['whatsapp'])) {
+            $errors[] = 'WhatsApp debe tener formato internacional (+52XXXXXXXXXX)';
+        }
+        
+        if (empty($userData['birth_date'])) {
+            $errors[] = 'Fecha de nacimiento es requerida';
+        } else {
+            $birthDate = new DateTime($userData['birth_date']);
+            $now = new DateTime();
+            $age = $now->diff($birthDate)->y;
+            if ($age < 18) {
+                $errors[] = 'El usuario debe ser mayor de 18 años';
+            }
+        }
+        
+        if (empty($userData['password']) || strlen($userData['password']) < 8) {
+            $errors[] = 'La contraseña debe tener al menos 8 caracteres';
+        }
+        
+        if (!in_array($userData['role'], ['usuario', 'comercio', 'capturista', 'gestor', 'superadmin'])) {
+            $errors[] = 'Rol inválido';
+        }
+        
+        if (!in_array($userData['status'], ['active', 'inactive', 'pending'])) {
+            $errors[] = 'Estado inválido';
+        }
+        
+        // Check if email already exists
+        if ($userModel->emailExists($userData['email'])) {
+            $errors[] = 'Este email ya está registrado';
+        }
+        
+        if (!empty($errors)) {
+            echo json_encode(['success' => false, 'message' => implode('. ', $errors)]);
+            return;
+        }
+        
+        // Hash password
+        $userData['password'] = password_hash($userData['password'], PASSWORD_DEFAULT);
+        
+        // Create user
+        $userId = $userModel->create($userData);
+        
+        if ($userId) {
+            echo json_encode(['success' => true, 'message' => 'Usuario creado correctamente', 'user_id' => $userId]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al crear el usuario']);
         }
     }
     
