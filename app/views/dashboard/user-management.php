@@ -435,6 +435,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Handle user edit form submission with event delegation
+    document.addEventListener('submit', function(e) {
+        if (e.target && e.target.id === 'userEditForm') {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const userId = form.dataset.userId;
+            
+            fetch(`<?= SITE_URL ?>dashboard/user-update/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and reload page
+                    document.getElementById('userEditModal').style.display = 'none';
+                    location.reload();
+                } else {
+                    alert('Error al actualizar el usuario: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el usuario');
+            });
+        }
+    });
+
+    // Handle role change in edit form with event delegation
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'edit_role') {
+            const roleSelect = e.target;
+            const cityFieldRow = document.getElementById('cityFieldRow');
+            const citySelect = document.getElementById('edit_city');
+            
+            if (cityFieldRow && citySelect) {
+                if (roleSelect.value === 'gestor' || roleSelect.value === 'capturista') {
+                    cityFieldRow.style.display = 'block';
+                    citySelect.required = true;
+                } else {
+                    cityFieldRow.style.display = 'none';
+                    citySelect.required = false;
+                    citySelect.value = '';
+                }
+            }
+        }
+    });
+
     // User Status Toggle
     document.querySelectorAll('.user-status-btn').forEach(btn => {
         btn.addEventListener('click', function() {
